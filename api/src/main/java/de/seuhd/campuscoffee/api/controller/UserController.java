@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import de.seuhd.campuscoffee.api.dtos.UserDtoAPI;
+import de.seuhd.campuscoffee.domain.ports.UserService;
 import de.seuhd.campuscoffee.domain.impl.UserServiceImpl;
 import de.seuhd.campuscoffee.api.mapper.UserDtoMapper;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.net.URI;
+
 
 @Tag(name = "Users", description = "Operations related to user management.")
 @Controller
@@ -29,33 +31,33 @@ private final UserServiceImpl userService; // Domain-Service
         this.userService = userService;
     }
 
-    // GET /api/users - alle Benutzer
+    // GET /api/users
     @GetMapping
-    public List<UserDtoMapper> getAllUsers() {
-        return UserServiceImpl.findAll().stream()
-                .map(UserMapper::toDto)
+    public List<UserDtoAPI> getAllUsers() {
+        return userService.findAll().stream()
+                .map(UserDtoMapper::toDto)
                 .collect(Collectors.toList());
     }
 
-    // GET /api/users/{id} - Benutzer nach ID
+    // GET /api/users/{id}
     @GetMapping("/{id}")
     public ResponseEntity<UserDtoAPI> getUserById(@PathVariable Long id) {
         return userService.findById(id)
-                .map(UserMapper::toDto)
+                .map(UserDtoMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // GET /api/users/filter?loginName=abc - Benutzer nach Login-Name (analog PosController)
+    // GET /api/users/filter?loginName=abc
     @GetMapping("/filter")
     public ResponseEntity<UserDtoAPI> getUserByLoginName(@RequestParam("loginName") String loginName) {
         return userService.findByLoginName(loginName)
-                .map(UserMapper::toDto)
+                .map(UserDtoMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // POST /api/users - neuen Benutzer erstellen
+    // POST /api/users
     @PostMapping
     public ResponseEntity<UserDtoAPI> createUser(@Valid @RequestBody UserDtoAPI request) {
         // Bean Validation greift hier
@@ -66,14 +68,14 @@ private final UserServiceImpl userService; // Domain-Service
                 .body(response);
     }
 
-    // PUT /api/users/{id} - bestehenden Benutzer aktualisieren
+    // PUT /api/users/{id}
     @PutMapping("/{id}")
-    public ResponseEntity<UserDto> updateUser(
+    public ResponseEntity<UserDtoAPI> updateUser(
             @PathVariable Long id,
-            @Valid @RequestBody UserDto request
+            @Valid @RequestBody UserDtoAPI request
     ) {
         return userService.updateUser(id, request)
-                .map(UserMapper::toDto)
+                .map(UserDtoMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
